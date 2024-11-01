@@ -156,3 +156,75 @@ export default SidebarItem;
 
 3. Se lo mandamos por props al component hijo:
    ![Envio de props](image-12.png)
+
+## Lista las entradas
+
+1. Petición HTTP: Vamos a trabajar en la carpeta Rest-TODOS/page.tsx. Haremos la petición haciendo uso de useEffect() y transformando nuestro page en un use client para poder utilizarlo:
+
+```js
+"use client";
+
+import { useEffect } from "react";
+
+// export const metadata = {
+//  title: 'Listado de Todos',
+//  description: 'SEO Title',
+// };
+
+export default function RestTodosPage() {
+  useEffect(() => {
+    fetch("/api/todos")
+      .then((resp) => resp.json())
+      .then(console.log);
+  }, []);
+
+  return (
+    <div>
+      <h1>RestTodosPage Page</h1>
+    </div>
+  );
+}
+```
+
+
+> [NOTA]
+>
+> si hacemos una petición del lado del cliente ya sea porque utilizamos el 'use client' o bien porque estamos dentro de efecto como useEffect() podemos tomar la url parcial. A que me refiero que no hace falta colocar: http://localhost:3000/api/todos
+>
+> Sino que basta unicamente con colocar '/api/todos'
+
+
+2. Sacando todo el potencial de Next +13 => Porque utilizar el useEffect haciendo una petición si podemos sacar la información desde el lado del servidor:
+
+```js
+import prisma from "@/lib/prisma";
+
+export const metadata = {
+  title: "Listado de Todos",
+  description: "SEO Title",
+};
+
+export default async function RestTodosPage() {
+  
+  // esto no solo nos trae los todos sino que tmb nos habilita poder utilizar la metadata.
+  const todos = await prisma.todo.findMany({
+    orderBy: { description: "asc" },
+  });
+
+  // useEffect(() => {
+  //   fetch('/api/todos')
+  //   .then( resp=> resp.json())
+  //   .then(console.log);
+  // }, []);
+
+  return (
+    <div>
+      <h1>RestTodosPage Page</h1>
+    </div>
+  );
+}
+```
+
+> [NOTA]
+>
+> Al tratarse de un SERVER COMPONENT ya tenemos acceso a los todos por medio de prisma.
