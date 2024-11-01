@@ -1,19 +1,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import { CiBookmarkCheck, CiLogout } from "react-icons/ci";
 import SidebarItem from "./SidebarItem";
+import {  IoCalendarOutline, IoCheckboxOutline, IoListOutline } from "react-icons/io5";
+import { CiLogout } from "react-icons/ci";
 
 const menuItems = [
   {
     path: "/dashboard",
     title: "Dashboard",
-    icon: <CiBookmarkCheck size={30} />,
+    icon: <IoCalendarOutline size={30} />,
   },
   {
     path: "/dashboard/rest-todos",
-    title: "Categories",
-    icon: <CiBookmarkCheck size={30} />,
+    title: "Rest TODOS",
+    icon: <IoCheckboxOutline size={30} />,
+  },
+  {
+    path: "/dashboard/server-todos",
+    title: "Server Actions",
+    icon: <IoListOutline size={30} />,
   },
 ];
 
@@ -33,14 +39,14 @@ const Sidebar = () => {
         </div>
         <div className="mt-8 text-center">
           <Image
-            src="https://tailus.io/sources/blocks/stats-cards/preview/images/second_user.webp"
+            src="https://res.cloudinary.com/dtbfspso5/image/upload/v1699289203/312014016_851542552876625_5393500657488779832_n_nomgxm.jpg"
             width={150}
             height={150}
             className="w-10 h-10 m-auto rounded-full object-cover lg:w-28 lg:h-28"
             alt="perfil"
           />
           <h5 className="hidden mt-4 text-xl font-semibold text-gray-600 lg:block">
-            Cynthia J. Watts
+            Luana J. Watts
           </h5>
           <span className="hidden text-gray-400 lg:block">Admin</span>
         </div>

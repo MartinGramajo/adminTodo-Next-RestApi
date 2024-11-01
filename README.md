@@ -107,3 +107,52 @@ Pero nuestro objetivo es evitar hacer una nueva migration porque con ello perder
 > [IMPORTANTE]
 >
 > Al hacer la migration perdemos nuestro TODOS por ende tenemos que ejecutar en POSTMAN, el endpoint de la SEED.
+
+## Sistema de navegación
+
+1. En el component `sidebarItem` vamos a establecer una interface.
+
+```js
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import React from "react";
+
+interface Props {
+  path: string;
+  icon: JSX.Element;
+  title: string;
+}
+
+const SidebarItem = ({ path, icon, title }: Props) => {
+  const pathName = usePathname();
+
+  return (
+    <li>
+      <Link
+        href={path}
+        className={` px-4 py-3 flex items-center space-x-4 rounded-md  group
+          hover:bg-gradient-to-r hover:bg-sky-600 hover:text-white
+          ${
+            path === pathName
+              ? "text-white bg-gradient-to-r from-sky-600 to-cyan-400"
+              : ""
+          }
+          `}
+      >
+        {icon}
+        <span className=" font-medium group-hover:text-white-700">{title}</span>
+      </Link>
+    </li>
+  );
+};
+
+export default SidebarItem;
+```
+
+2. En el component `sidebar` vamos a enviarle por props el menuItems que vamos a utilizar para crear de forma dinámica nuestros items del Sidebar.
+   ![Menu Items](image-11.png)
+
+3. Se lo mandamos por props al component hijo:
+   ![Envio de props](image-12.png)
