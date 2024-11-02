@@ -45,3 +45,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: error }, { status: 400 });
   }
 }
+
+
+const deleteSchema = yup.object({
+  complete: yup.boolean().required(),
+});
+
+export async function DELETE(request: Request) {
+  try {
+   
+    const todo = await prisma.todo.deleteMany({ 
+      where: { complete: true },
+     });
+    return NextResponse.json('Borrados');
+  } catch (error) {
+    return NextResponse.json({ message: error }, { status: 400 });
+  }
+}

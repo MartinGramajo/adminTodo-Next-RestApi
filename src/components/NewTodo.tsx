@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { IoTrashOutline } from "react-icons/io5";
+import { IoAddCircle, IoTrashOutline } from "react-icons/io5";
 import * as todosApi from '@/todos/helpers/todos';
+
 
 
 export const NewTodo = () => { 
@@ -14,10 +15,21 @@ export const NewTodo = () => {
     const onSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (description.trim().length ===0) return;
-        const createdTodo = await todosApi.createTodo(description);
+        await todosApi.createTodo(description);
+        setDescription('');
         router.refresh();
-        console.log('form submitted', description);
-             
+    }
+
+    const deleteCompleted = async (e: FormEvent)=>{
+        e.preventDefault();
+        await todosApi.deleteTodo();
+        router.refresh();
+    }
+
+    const refreshCompleted = async (e: FormEvent)=>{
+        e.preventDefault();
+        await todosApi.refreshTodo();
+        router.refresh();
     }
 
   return (
@@ -35,12 +47,21 @@ export const NewTodo = () => {
       </button>
       
       <span className='flex flex-1'></span>
+      <button 
+        onClick={ refreshCompleted }
+        type='button' className="flex items-center justify-center rounded ml-2 bg-green-600 p-2 text-white hover:bg-green-800 transition-all">
+        <IoAddCircle />
+        <span className="ml-2 text-text-sm">Recuperar completados</span>
+        
+      </button>
+      <span className='flex flex-1'></span>
 
       <button 
-        //TODO: onClick={ () => deleteCompleted() }
+        onClick={deleteCompleted }
         type='button' className="flex items-center justify-center rounded ml-2 bg-red-400 p-2 text-white hover:bg-red-700 transition-all">
         <IoTrashOutline />
-        Delete
+        <span className="ml-2 text-text-sm">Borrar completados</span>
+        
       </button>
 
 
