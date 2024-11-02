@@ -489,4 +489,92 @@ const TodoItem = ({ todo, toggleTodo }: Props) => {
 
 export default TodoItem;
 ```
-NOTA: 
+
+## Actualizar Server Component
+
+Como no queremos que al tocar un todo tengamos que recargar la pagina para ver actualizada la información y los cambios visuales, en este caso, tachado o no el todo, vamos a implementar `actualizar la info desde el server component`
+
+1. En el component TodosGrid vamos a crear una función adicional esto con el objetivo de aprovechar las ventajas de trabajar de Next, con esto le decimos a NEXT recarga la ruta actual y NEXT lo hace de manera tal que solo actualiza aquellos componentes que fueron afectados. Es decir, vuelve a hacer la construcción solo de ese componente.
+
+```js
+"use client";
+
+import React from "react";
+import { Todo } from "@prisma/client";
+import TodoItem from "./TodoItem";
+
+// esto es cuando tenemos muchas acciones
+// nos brinda la posibilidad de tener un código mucho mas ordenado
+// al saber de que carpeta o elemento estamos importante las funciones: api.update
+
+import * as todosApi from "@/todos/helpers/todos";
+
+interface Props {
+  todos?: Todo[];
+}
+
+const TodosGrid = ({ todos = [] }: Props) => {
+  const toggleTodo = async (id: string, complete: boolean) => {
+    const updatedTodo = await todosApi.updateTodo(id, complete);
+  };
+
+  return (
+    <div className="gird grid-cols-1 sm:grid-cols-3 gap-2">
+      {todos.map((todo) => (
+        <TodoItem key={todo.id} todo={todo} toggleTodo={toggleTodo} />
+      ))}
+    </div>
+  );
+};
+
+export default TodosGrid;
+```
+
+2. Ahora lo tenemos que hacer funcionar: Para ello vamos a utilizar router de useRouter(). Con router vamos a usar una de sus propiedades `refresh()` esto para cargar solamente el componente actual (la ruta en la cual nos encontramos):
+
+```js
+"use client";
+
+import React from "react";
+import { Todo } from "@prisma/client";
+import TodoItem from "./TodoItem";
+
+// esto es cuando tenemos muchas acciones
+// nos brinda la posibilidad de tener un código mucho mas ordenado
+// al saber de que carpeta o elemento estamos importante las funciones: api.update
+
+import * as todosApi from "@/todos/helpers/todos";
+import { useRouter } from "next/navigation"; // asegurarse de tomar de next/navigation porque esto es lo nuevo de Next +13
+
+interface Props {
+  todos?: Todo[];
+}
+
+const TodosGrid = ({ todos = [] }: Props) => {
+  const router = useRouter();
+
+  const toggleTodo = async (id: string, complete: boolean) => {
+    const updatedTodo = await todosApi.updateTodo(id, complete);
+    router.refresh();
+  };
+
+  return (
+    <div className="gird grid-cols-1 sm:grid-cols-3 gap-2">
+      {todos.map((todo) => (
+        <TodoItem key={todo.id} todo={todo} toggleTodo={toggleTodo} />
+      ))}
+    </div>
+  );
+};
+
+export default TodosGrid;
+```
+
+> [IMPORTANTE]
+>
+> `useRouter()` debe ser importado de `next/navigation` porque es lo nuevo que se utiliza en NEXT +13.
+>
+> [!NOTA}
+>
+> Utilizar el router es muy poderoso en el sentido que podemos tener un state en otro componente y ya que solo afecta a los todo, por mas modificaciones que hagamos el state actual permanece, esto se debe, a que el ```refresh()``` solo afecta el componente o ruta en la cual fue utilizado.
+
