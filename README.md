@@ -186,13 +186,11 @@ export default function RestTodosPage() {
 }
 ```
 
-
 > [NOTA]
 >
 > si hacemos una petición del lado del cliente ya sea porque utilizamos el 'use client' o bien porque estamos dentro de efecto como useEffect() podemos tomar la url parcial. A que me refiero que no hace falta colocar: http://localhost:3000/api/todos
 >
 > Sino que basta unicamente con colocar '/api/todos'
-
 
 2. Sacando todo el potencial de Next +13 => Porque utilizar el useEffect haciendo una petición si podemos sacar la información desde el lado del servidor:
 
@@ -205,7 +203,6 @@ export const metadata = {
 };
 
 export default async function RestTodosPage() {
-  
   // esto no solo nos trae los todos sino que tmb nos habilita poder utilizar la metadata.
   const todos = await prisma.todo.findMany({
     orderBy: { description: "asc" },
@@ -228,3 +225,163 @@ export default async function RestTodosPage() {
 > [NOTA]
 >
 > Al tratarse de un SERVER COMPONENT ya tenemos acceso a los todos por medio de prisma.
+
+## Estructura y diseño de los TODOs
+
+Tenemos varias `técnicas` para manipular la data de los todos una vez cargado el server component:
+
+1. Mediante un CLI COMPONENT: En SRC vamos a crear la carpeta `todos`, en donde vamos a tener las sub-carpetas (helpers, components, interfaces).
+
+2. Creamos el component `TodosGrid.tsx`, en ese componente vamos a crear una interface para las props utilizando prisma.
+
+```js
+import React from "react";
+import { Todo } from "@prisma/client";
+
+interface Props {
+  todos?: Todo[];
+}
+
+const TodosGrid = () => {
+  return (
+    <div>
+      <span>todos grid</span>
+    </div>
+  );
+};
+
+export default TodosGrid;
+```
+
+NOTA: Prisma nos ofrece el tipado ya directamente de nuestros todos solamente tenemos que importarlo.
+
+NOTA2: También tenemos la opciones de crear nuestra propia interface ajena a prisma.
+
+3. Desde el server component (page.tsx) vamos a enviar los todos para ser usado desde el lado del cliente (TodosGrid.tsx):
+
+##### LADO DEL SERVIDOR
+
+```js
+import prisma from "@/lib/prisma";
+import TodosGrid from "@/todos/components/TodosGrid";
+export const metadata = {
+  title: "Listado de Todos",
+  description: "SEO Title",
+};
+export default async function RestTodosPage() {
+  const todos = await prisma.todo.findMany({
+    orderBy: { description: "asc" },
+  });
+  return (
+    <div>
+      {/* TODO:FORMULARIO PARA AGREGAR  */}
+      <h1>RestTodosPage Page</h1>
+      <TodosGrid todos={todos} />
+    </div>
+  );
+}
+```
+
+##### LADO DEL CLIENTE
+
+```js
+import React from "react";
+import { Todo } from "@prisma/client";
+
+interface Props {
+  todos?: Todo[];
+}
+
+const TodosGrid = ({ todos = [] }: Props) => {
+  return (
+    <div>
+      <span>todos grid</span>
+    </div>
+  );
+};
+
+export default TodosGrid;
+```
+
+4. Creamos un nuevo component para mapear los todos => TodoItems
+   Mapeo:
+
+```js
+const TodosGrid = ({ todos = [] }: Props) => {
+  return (
+    <div className="gird grid-cols-1 sm:grid-cols-3 gap-2">
+      {todos.map((todo) => (
+        <TodoItem key={todo.id} todo={todo} />
+      ))}
+    </div>
+  );
+};
+```
+
+## Estructura y diseño de los TODOs Parte 2
+
+Seguimos trabajando sobre la estructura y diseño del component `TodoItem`
+
+1. Creamos un nuevo archivo de css para los estilos del component ``TodoItem` en la carpeta donde se encuentra el component.
+
+2. Importamos el archivo de css para los estilos del component ``TodoItem` y lo utilizamos
+
+```js
+import { Todo } from "@prisma/client";
+import styles from "./TodoItem.module.css";
+import { IoCheckboxOutline } from "react-icons/io5";
+
+interface Props {
+  todo: Todo;
+  // TODO: Acciones que quiero llamar
+}
+
+const TodoItem = ({ todo }: Props) => {
+  return (
+    <div className={todo.complete ? styles.todoDone : styles.todoPending}>
+      <div className="flex flex-col sm:flex-row justify-start items-center gap-4 ">
+        <div
+          className={`
+            flex p-2 rounded-md cursor-pointer 
+            hover:bg-opacity-60 
+            bg-blue-100
+            `}
+        >
+          <IoCheckboxOutline size={30} />
+        </div>
+        <div className="text-center sm:text-left">{todo.description}</div>
+      </div>
+    </div>
+  );
+};
+
+export default TodoItem;
+```
+
+> [IMPORTANTE]
+>
+> Como trabajamos con la estructura de carpeta no tenemos en esta carpeta los estilos de tailwind es por esta razón que lo tenemos que agregar en el archivo `tailwind.config.ts`.
+
+```js
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/todos/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+      },
+    },
+  },
+  plugins: [],
+};
+export default config;
+```
+## Actualizar Todo
