@@ -384,4 +384,109 @@ const config: Config = {
 };
 export default config;
 ```
+
 ## Actualizar Todo
+
+Ahora le vamos a dar funcionalidad para que el user al tocar un todo cambie junto con la base de datos.
+
+1. Dentro de la carpeta TODOS/HELPERS/ vamos a crear el archivo `todos.ts` en donde vamos a tener unicamente la petición al endpoint, es decir, a mis todos
+
+```js
+import { Todo } from "@prisma/client";
+
+export const updateTodo = async (
+  id: string,
+  complete: boolean
+): Promise<Todo> => {
+  // apuntamos el complete de nuestro parámetro para que haga match con el complete de nuestra base de datos
+  const body = { complete };
+
+  // creamos la petición http
+  // como vamos a modificar es un method PUT
+  const todo = await fetch(`/api/todos/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then((resp) => resp.json());
+
+  return todo;
+};
+```
+
+> [IMPORTANTE]
+>
+> Si mando a llamar esta función `updateTodo()` desde el lado del cliente me va a afectar la base de datos.
+
+2. Ahora enviamos a TodoItems la función
+
+```js
+"use client";
+
+import React from "react";
+import { Todo } from "@prisma/client";
+import TodoItem from "./TodoItem";
+
+// esto es cuando tenemos muchas acciones
+// nos brinda la posibilidad de tener un codigo mucho mas ordenado al saber de que carpeta o elemento estamos importante las funciones
+
+import * as api from "@/todos/helpers/todos";
+
+interface Props {
+  todos?: Todo[];
+}
+
+const TodosGrid = ({ todos = [] }: Props) => {
+  return (
+    <div className="gird grid-cols-1 sm:grid-cols-3 gap-2">
+      {todos.map((todo) => (
+        <TodoItem key={todo.id} todo={todo} toggleTodo={api.updateTodo} />
+      ))}
+    </div>
+  );
+};
+export default TodosGrid;
+```
+
+3. En TodoItem hacemos la siguiente modificación:
+
+```js
+"use client";
+import { Todo } from "@prisma/client";
+import styles from "./TodoItem.module.css";
+import { IoCheckboxOutline, IoSquareOutline } from "react-icons/io5";
+
+interface Props {
+  todo: Todo;
+  // TODO: Acciones que quiero llamar
+  toggleTodo: (id: string, complete: boolean) => Promise<Todo | void>;
+}
+
+const TodoItem = ({ todo, toggleTodo }: Props) => {
+  return (
+    <div className={todo.complete ? styles.todoDone : styles.todoPending}>
+      <div className="flex flex-col sm:flex-row justify-start items-center gap-4 ">
+        <div
+          onClick={() => toggleTodo(todo.id, !todo.complete)}
+          className={`
+            flex p-2 rounded-md cursor-pointer 
+            hover:bg-opacity-60 
+            ${todo.complete ? "bg-blue-100" : "bg-red-100"}
+            `}
+        >
+          {todo.complete ? (
+            <IoCheckboxOutline size={30} />
+          ) : (
+            <IoSquareOutline size={30} />
+          )}
+        </div>
+        <div className="text-center sm:text-left">{todo.description}</div>
+      </div>
+    </div>
+  );
+};
+
+export default TodoItem;
+```
+NOTA: 
