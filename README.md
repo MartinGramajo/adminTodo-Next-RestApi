@@ -576,5 +576,30 @@ export default TodosGrid;
 >
 > [!NOTA}
 >
-> Utilizar el router es muy poderoso en el sentido que podemos tener un state en otro componente y ya que solo afecta a los todo, por mas modificaciones que hagamos el state actual permanece, esto se debe, a que el ```refresh()``` solo afecta el componente o ruta en la cual fue utilizado.
+> Utilizar el router es muy poderoso en el sentido que podemos tener un state en otro componente y ya que solo afecta a los todo, es decir, al componente actual, por mas modificaciones que hagamos el state este  permanece con su valor actualmente modificado, esto se debe a que el ```refresh()``` solo afecta el componente o ruta en la cual fue utilizado, en nuestro caso, solo afecta a los Todos.
 
+## Crear un TODO
+
+1.  Creamos el formulario en un componente NewTodo.tsx 
+2. En la carpeta Helpers, en el archivo todos.ts vamos a crear la nueva petición. Como referencia vamos a copiar toda la función ```update todo``` y le haremos la siguiente modificaciones: 
+```js
+export const createTodo = async (
+  description: string,
+): Promise<Todo> => {
+  // apuntamos al DESCRIPTION de nuestro parámetro para que haga match con el DESCRIPTION de nuestra base de datos
+  const body = { description };
+
+  // creamos la petición http
+  // como vamos a crear es un method POST
+  const todo = await fetch(`/api/todos`, {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then(resp => resp.json());
+
+  return todo;
+};
+
+```
