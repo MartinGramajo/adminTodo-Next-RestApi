@@ -576,16 +576,15 @@ export default TodosGrid;
 >
 > [!NOTA}
 >
-> Utilizar el router es muy poderoso en el sentido que podemos tener un state en otro componente y ya que solo afecta a los todo, es decir, al componente actual, por mas modificaciones que hagamos el state este  permanece con su valor actualmente modificado, esto se debe a que el ```refresh()``` solo afecta el componente o ruta en la cual fue utilizado, en nuestro caso, solo afecta a los Todos.
+> Utilizar el router es muy poderoso en el sentido que podemos tener un state en otro componente y ya que solo afecta a los todo, es decir, al componente actual, por mas modificaciones que hagamos el state este permanece con su valor actualmente modificado, esto se debe a que el `refresh()` solo afecta el componente o ruta en la cual fue utilizado, en nuestro caso, solo afecta a los Todos.
 
 ## Crear un TODO
 
-1.  Creamos el formulario en un componente NewTodo.tsx 
-2. En la carpeta Helpers, en el archivo todos.ts vamos a crear la nueva petición. Como referencia vamos a copiar toda la función ```update todo``` y le haremos la siguiente modificaciones: 
+1.  Creamos el formulario en un componente NewTodo.tsx
+2.  En la carpeta Helpers, en el archivo todos.ts vamos a crear la nueva petición. Como referencia vamos a copiar toda la función `update todo` y le haremos la siguiente modificaciones:
+
 ```js
-export const createTodo = async (
-  description: string,
-): Promise<Todo> => {
+export const createTodo = async (description: string): Promise<Todo> => {
   // apuntamos al DESCRIPTION de nuestro parámetro para que haga match con el DESCRIPTION de nuestra base de datos
   const body = { description };
 
@@ -597,9 +596,112 @@ export const createTodo = async (
     headers: {
       "Content-Type": "application/json",
     },
-  }).then(resp => resp.json());
+  }).then((resp) => resp.json());
 
   return todo;
 };
+```
 
+## Tarea: crear la función deleteCompleted():
+
+1. Al no tener la petición en nuestra carpeta API, tenemos que crearla apuntando al siguiente endpoint:http://localhost:3000/api/todos
+   Por ende vamos a trabajar: SRC/APP/API/TODOS/route.ts
+
+```js
+export async function DELETE(request: Request) {
+  try {
+    const todo = await prisma.todo.deleteMany({
+      where: { complete: true },
+    });
+    return NextResponse.json("Borrados");
+  } catch (error) {
+    return NextResponse.json({ message: error }, { status: 400 });
+  }
+}
+```
+
+2. Agregada la petición vamos a trabajar en los HELPERS para crear la función:
+
+```js
+export const deleteTodo = async (): Promise<boolean> => {
+  try {
+    await fetch(`/api/todos`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((resp) => resp.json());
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+```
+
+3. Por ultimo tenemos que utilizarla en el component newTodo:
+
+```js
+"use client";
+
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
+import { IoAddCircle, IoTrashOutline } from "react-icons/io5";
+import * as todosApi from "@/todos/helpers/todos";
+
+export const NewTodo = () => {
+  const [description, setDescription] = useState("");
+  const router = useRouter();
+
+  const deleteCompleted = async (e: FormEvent) => {
+    e.preventDefault();
+    await todosApi.deleteTodo();
+    router.refresh();
+  };
+
+  const refreshCompleted = async (e: FormEvent) => {
+    e.preventDefault();
+    await todosApi.refreshTodo();
+    router.refresh();
+  };
+
+  return (
+    <form onSubmit={onSubmit} className="flex w-full">
+      <input
+        type="text"
+        onChange={(e) => setDescription(e.target.value)}
+        value={description}
+        className="w-6/12 -ml-10 pl-3 pr-3 py-2 rounded-lg border-2 border-gray-200 outline-none focus:border-sky-500 transition-all"
+        placeholder="¿Qué necesita ser hecho?"
+      />
+
+      <button
+        type="submit"
+        className="flex items-center justify-center rounded ml-2 bg-sky-500 p-2 text-white hover:bg-sky-700 transition-all"
+      >
+        Crear
+      </button>
+
+      <span className="flex flex-1"></span>
+      <button
+        onClick={refreshCompleted}
+        type="button"
+        className="flex items-center justify-center rounded ml-2 bg-green-600 p-2 text-white hover:bg-green-800 transition-all"
+      >
+        <IoAddCircle />
+        <span className="ml-2 text-text-sm">Recuperar completados</span>
+      </button>
+      <span className="flex flex-1"></span>
+
+      <button
+        onClick={deleteCompleted}
+        type="button"
+        className="flex items-center justify-center rounded ml-2 bg-red-400 p-2 text-white hover:bg-red-700 transition-all"
+      >
+        <IoTrashOutline />
+        <span className="ml-2 text-text-sm">Borrar completados</span>
+      </button>
+    </form>
+  );
+};
 ```
